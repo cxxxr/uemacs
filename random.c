@@ -460,11 +460,6 @@ int insert_newline(int f, int n)
 	if (n < 0)
 		return FALSE;
 
-	/* if we are in C mode and this is a default <NL> */
-	if (n == 1 && (curbp->b_mode & MDCMOD) &&
-	    curwp->w_dotp != curbp->b_linep)
-		return cinsert();
-
 	/*
 	 * If a newline was typed, fill column is defined, the argument is non-
 	 * negative, wrap mode is enabled, and we are now past fill column,
@@ -731,6 +726,11 @@ int indent(int f, int n)
 		return rdonly();	/* we are in read only mode     */
 	if (n < 0)
 		return FALSE;
+
+	if (n == 1 && (curbp->b_mode & MDCMOD) &&
+	    curwp->w_dotp != curbp->b_linep)
+		return cinsert();
+
 	while (n--) {
 		nicol = 0;
 		for (i = 0; i < llength(curwp->w_dotp); ++i) {

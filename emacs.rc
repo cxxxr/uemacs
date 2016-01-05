@@ -260,7 +260,7 @@ bind-to-key execute-macro-28 ^X]
 
 ;	Make cut-paste easier in window systems
 
-bind-to-key	newline	^J
+;bind-to-key	newline	^J
 
 ;	uEmacs/PK specific initialization
 
