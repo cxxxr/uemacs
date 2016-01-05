@@ -209,7 +209,13 @@ static void vtputc(int c)
 		vtputc(hex[c & 15]);
 		return;
 	}
-	
+
+	if (utf8_width(c) > 1) {
+		vp->v_text[vtcol++] = c;
+		vp->v_text[vtcol++] = -1;
+		return;
+	}
+
 	if (vtcol >= 0)
 		vp->v_text[vtcol] = c;
 	++vtcol;

@@ -109,9 +109,10 @@ int ttputc(int c)
 {
 	char utf8[6];
 	int bytes;
-
-	bytes = unicode_to_utf8(c, utf8);
-	fwrite(utf8, 1, bytes, stdout);
+	if (c >= 0) {
+		bytes = unicode_to_utf8(c, utf8);
+		fwrite(utf8, 1, bytes, stdout);
+	}
 	return 0;
 }
 
