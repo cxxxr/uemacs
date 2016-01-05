@@ -258,10 +258,10 @@ int capword(int f, int n)
 	return TRUE;
 }
 
-static int getat_bytes(void)
+static int getat_bytes(int offset)
 {
 	unicode_t c;
-	return utf8_to_unicode(curwp->w_dotp->l_text, curwp->w_doto,
+	return utf8_to_unicode(curwp->w_dotp->l_text, curwp->w_doto + offset,
 			       llength(curwp->w_dotp), &c);
 }
 
@@ -301,7 +301,7 @@ int delfword(int f, int n)
 
 	/* get us into a word.... */
 	while (word_type() == 0) {
-		size += getat_bytes();
+		size += getat_bytes(0);
 		if (forwchar(FALSE, 1) == FALSE)
 			return FALSE;
 	}
@@ -310,7 +310,7 @@ int delfword(int f, int n)
 		/* skip one word, no whitespace! */
 		type = word_type();
 		while (word_type() == type) {
-			size += getat_bytes();
+			size += getat_bytes(0);
 			if (forwchar(FALSE, 1) == FALSE)
 				return FALSE;
 		}
@@ -320,7 +320,7 @@ int delfword(int f, int n)
 
 			/* if we are at EOL; skip to the beginning of the next */
 			while (curwp->w_doto == llength(curwp->w_dotp)) {
-				size += getat_bytes();
+				size += getat_bytes(0);
 				if (forwchar(FALSE, 1) == FALSE)
 					return FALSE;
 			}
@@ -328,7 +328,7 @@ int delfword(int f, int n)
 			/* move forward till we are at the end of the word */
 			type = word_type();
 			while (word_type() == type) {
-				size += getat_bytes();
+                                size += getat_bytes(0);
 				if (forwchar(FALSE, 1) == FALSE)
 					return FALSE;
 			}
@@ -336,7 +336,7 @@ int delfword(int f, int n)
 			/* if there are more words, skip the interword stuff */
 			if (n != 0)
 				while (word_type() == 0) {
-					size += getat_bytes();
+					size += getat_bytes(0);
 					if (forwchar(FALSE, 1) == FALSE)
 						return FALSE;
 				}
@@ -346,7 +346,7 @@ int delfword(int f, int n)
 		while ((curwp->w_doto == llength(curwp->w_dotp)) ||
 		       ((c = lgetc(curwp->w_dotp, curwp->w_doto)) == ' ')
 		       || (c == '\t')) {
-			size += getat_bytes();
+			size += getat_bytes(0);
 			if (forwchar(FALSE, 1) == FALSE)
 				break;
 		}
@@ -384,20 +384,22 @@ int delbword(int f, int n)
 		return FALSE;
 	size = 0;
 	while (n--) {
-		while (inword() == FALSE) {
+		while (word_type() == 0) {
 			if (backchar(FALSE, 1) == FALSE)
 				return FALSE;
-			++size;
+			size += getat_bytes(1);
 		}
-		while (inword() != FALSE) {
-			++size;
+		int type = word_type();
+		while (word_type() == type) {
 			if (backchar(FALSE, 1) == FALSE)
 				goto bckdel;
+			size += getat_bytes(1);
 		}
 	}
 	if (forwchar(FALSE, 1) == FALSE)
 		return FALSE;
-      bckdel:return ldelchar(size, TRUE);
+      bckdel:
+	return ldelchar(size, TRUE);
 }
 
 /*
