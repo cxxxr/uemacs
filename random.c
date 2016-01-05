@@ -142,7 +142,7 @@ int getccol(int bflg)
 			++col;
 		else if (c >= 0xc0 && c <= 0xa0)
 			col += 2;
-		++col;
+		col += utf8_width(c);
 	}
 	return col;
 }
@@ -174,7 +174,7 @@ int setccol(int pos)
 			col |= tabmask;
 		else if (c < 0x20 || c == 0x7F)
 			++col;
-		++col;
+		col += utf8_width(c);
 	}
 
 	/* set us at the new position */
@@ -739,7 +739,7 @@ int indent(int f, int n)
 				break;
 			if (c == '\t')
 				nicol |= tabmask;
-			++nicol;
+			nicol += utf8_width(c);
 		}
 		if (lnewline() == FALSE
 		    || ((i = nicol / 8) != 0 && linsert(i, '\t') == FALSE)

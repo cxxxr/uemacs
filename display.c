@@ -549,7 +549,7 @@ void updpos(void)
 		if (c == '\t')
 			curcol |= tabmask;
 
-		++curcol;
+		curcol += utf8_width(c);
 	}
 
 	/* if extended, flag so and update the virtual line image */

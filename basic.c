@@ -43,6 +43,8 @@ static int getgoal(struct line *dlp)
 			++newcol;
 		else if (c >= 0x80 && c <= 0xa0)
 			newcol += 2;
+		else if (utf8_width(c) > 1)
+			++newcol;
 
 		++newcol;
 		if (newcol > curgoal)
