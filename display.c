@@ -210,7 +210,7 @@ static void vtputc(int c)
 		return;
 	}
 
-	if (utf8_width(c) > 1) {
+	if (unicode_width(c) > 1) {
 		vp->v_text[vtcol++] = c;
 		vp->v_text[vtcol++] = -1;
 		return;
@@ -555,7 +555,7 @@ void updpos(void)
 		if (c == '\t')
 			curcol |= tabmask;
 
-		curcol += utf8_width(c);
+		curcol += unicode_width(c);
 	}
 
 	/* if extended, flag so and update the virtual line image */

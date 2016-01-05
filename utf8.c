@@ -181,7 +181,7 @@ static int search_table(struct te *table, int size, unicode_t c)
 	return res != NULL;
 }
 
-int utf8_width(unicode_t c)
+int unicode_width(unicode_t c)
 {
 	if (search_table(eastasian_full,
 			 sizeof(eastasian_full) / sizeof(struct te),
