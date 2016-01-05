@@ -258,6 +258,13 @@ int capword(int f, int n)
 	return TRUE;
 }
 
+static int getat_bytes(void)
+{
+	unicode_t c;
+	return utf8_to_unicode(curwp->w_dotp->l_text, curwp->w_doto,
+			       llength(curwp->w_dotp), &c);
+}
+
 /*
  * Kill forward by "n" words. Remember the location of dot. Move forward by
  * the right number of words. Put dot back where it was and issue the kill
@@ -270,6 +277,7 @@ int delfword(int f, int n)
 	int doto;	/*      and row */
 	int c;		/* temp char */
 	long size;		/* # of chars to delete */
+	int type;
 
 	/* don't allow this command if we are in read only mode */
 	if (curbp->b_mode & MDVIEW)
@@ -292,18 +300,19 @@ int delfword(int f, int n)
 	size = 0;
 
 	/* get us into a word.... */
-	while (inword() == FALSE) {
+	while (word_type() == 0) {
+		size += getat_bytes();
 		if (forwchar(FALSE, 1) == FALSE)
 			return FALSE;
-		++size;
 	}
 
 	if (n == 0) {
 		/* skip one word, no whitespace! */
-		while (inword() == TRUE) {
+		type = word_type();
+		while (word_type() == type) {
+			size += getat_bytes();
 			if (forwchar(FALSE, 1) == FALSE)
 				return FALSE;
-			++size;
 		}
 	} else {
 		/* skip n words.... */
@@ -311,24 +320,25 @@ int delfword(int f, int n)
 
 			/* if we are at EOL; skip to the beginning of the next */
 			while (curwp->w_doto == llength(curwp->w_dotp)) {
+				size += getat_bytes();
 				if (forwchar(FALSE, 1) == FALSE)
 					return FALSE;
-				++size;
 			}
 
 			/* move forward till we are at the end of the word */
-			while (inword() == TRUE) {
+			type = word_type();
+			while (word_type() == type) {
+				size += getat_bytes();
 				if (forwchar(FALSE, 1) == FALSE)
 					return FALSE;
-				++size;
 			}
 
 			/* if there are more words, skip the interword stuff */
 			if (n != 0)
-				while (inword() == FALSE) {
+				while (word_type() == 0) {
+					size += getat_bytes();
 					if (forwchar(FALSE, 1) == FALSE)
 						return FALSE;
-					++size;
 				}
 		}
 
@@ -336,9 +346,9 @@ int delfword(int f, int n)
 		while ((curwp->w_doto == llength(curwp->w_dotp)) ||
 		       ((c = lgetc(curwp->w_dotp, curwp->w_doto)) == ' ')
 		       || (c == '\t')) {
+			size += getat_bytes();
 			if (forwchar(FALSE, 1) == FALSE)
 				break;
-			++size;
 		}
 	}
 
