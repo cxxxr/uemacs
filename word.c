@@ -14,6 +14,28 @@
 #include "efunc.h"
 #include "line.h"
 
+static int word_type(void)
+{
+	unicode_t c;
+	if (curwp->w_doto == llength(curwp->w_dotp))
+		return FALSE;
+	utf8_to_unicode(curwp->w_dotp->l_text, curwp->w_doto,
+			llength(curwp->w_dotp), &c);
+	if (0x3040 <= c && c <= 0x309f)
+		return 2;
+	if (0x30a0 <= c && c <= 0x30ff)
+		return 3;
+	if ((c >= 0x4e00 && c <= 0x9fcf) ||
+	    (c >= 0x3400 && c <= 0x4dbf) ||
+	    (c >= 0x20000 && c <= 0x2a6df) ||
+	    (c >= 0xf900 && c <= 0xfadf) ||
+	    (c >= 0x2f800 && c <= 0x2fa1f))
+		return 4;
+	if (isletter(c))
+		return 1;
+	return 0;
+}
+
 /* Word wrap on n-spaces. Back-over whatever precedes the point on the current
  * line and stop on the first word-break or the beginning of the line. If we
  * reach the beginning of the line, jump back to the end of the word and start
@@ -76,11 +98,12 @@ int backword(int f, int n)
 	if (backchar(FALSE, 1) == FALSE)
 		return FALSE;
 	while (n--) {
-		while (inword() == FALSE) {
+		while (word_type() == 0) {
 			if (backchar(FALSE, 1) == FALSE)
 				return FALSE;
 		}
-		while (inword() != FALSE) {
+		int type = word_type();
+		while (word_type() == type) {
 			if (backchar(FALSE, 1) == FALSE)
 				return FALSE;
 		}
@@ -97,12 +120,13 @@ int forwword(int f, int n)
 	if (n < 0)
 		return backword(f, -n);
 	while (n--) {
-		while (inword() == TRUE) {
+		int type = word_type();
+		while (word_type() == type) {
 			if (forwchar(FALSE, 1) == FALSE)
 				return FALSE;
 		}
 
-		while (inword() == FALSE) {
+		while (word_type() == 0) {
 			if (forwchar(FALSE, 1) == FALSE)
 				return FALSE;
 		}
