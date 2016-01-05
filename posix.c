@@ -164,7 +164,7 @@ int ttgetc(void)
 	}
 
 	c = (unsigned char) buffer[0];
-	if (c >= 32 && c < 128)
+	if (c >= 0 && c < 128)
 		goto done;
 
 	/*
