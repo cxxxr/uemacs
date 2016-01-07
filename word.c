@@ -258,13 +258,6 @@ int capword(int f, int n)
 	return TRUE;
 }
 
-static int getat_bytes(int offset)
-{
-	unicode_t c;
-	return utf8_to_unicode(curwp->w_dotp->l_text, curwp->w_doto + offset,
-			       llength(curwp->w_dotp), &c);
-}
-
 /*
  * Kill forward by "n" words. Remember the location of dot. Move forward by
  * the right number of words. Put dot back where it was and issue the kill
@@ -301,18 +294,18 @@ int delfword(int f, int n)
 
 	/* get us into a word.... */
 	while (word_type() == 0) {
-		size += getat_bytes(0);
 		if (forwchar(FALSE, 1) == FALSE)
 			return FALSE;
+		++size;
 	}
 
 	if (n == 0) {
 		/* skip one word, no whitespace! */
 		type = word_type();
 		while (word_type() == type) {
-			size += getat_bytes(0);
 			if (forwchar(FALSE, 1) == FALSE)
 				return FALSE;
+			++size;
 		}
 	} else {
 		/* skip n words.... */
@@ -320,25 +313,25 @@ int delfword(int f, int n)
 
 			/* if we are at EOL; skip to the beginning of the next */
 			while (curwp->w_doto == llength(curwp->w_dotp)) {
-				size += getat_bytes(0);
 				if (forwchar(FALSE, 1) == FALSE)
 					return FALSE;
+				++size;
 			}
 
 			/* move forward till we are at the end of the word */
 			type = word_type();
 			while (word_type() == type) {
-                                size += getat_bytes(0);
 				if (forwchar(FALSE, 1) == FALSE)
 					return FALSE;
+				++size;
 			}
 
 			/* if there are more words, skip the interword stuff */
 			if (n != 0)
 				while (word_type() == 0) {
-					size += getat_bytes(0);
 					if (forwchar(FALSE, 1) == FALSE)
 						return FALSE;
+					++size;
 				}
 		}
 
@@ -346,16 +339,16 @@ int delfword(int f, int n)
 		while ((curwp->w_doto == llength(curwp->w_dotp)) ||
 		       ((c = lgetc(curwp->w_dotp, curwp->w_doto)) == ' ')
 		       || (c == '\t')) {
-			size += getat_bytes(0);
 			if (forwchar(FALSE, 1) == FALSE)
 				break;
+			++size;
 		}
 	}
 
 	/* restore the original position and delete the words */
 	curwp->w_dotp = dotp;
 	curwp->w_doto = doto;
-	return ldelete(size, TRUE);
+	return ldelchar(size, TRUE);
 }
 
 /*
@@ -387,13 +380,13 @@ int delbword(int f, int n)
 		while (word_type() == 0) {
 			if (backchar(FALSE, 1) == FALSE)
 				return FALSE;
-			size += getat_bytes(1);
+			++size;
 		}
 		int type = word_type();
 		while (word_type() == type) {
+			++size;
 			if (backchar(FALSE, 1) == FALSE)
 				goto bckdel;
-			size += getat_bytes(1);
 		}
 	}
 	if (forwchar(FALSE, 1) == FALSE)
