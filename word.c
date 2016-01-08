@@ -8,6 +8,7 @@
  */
 
 #include <stdio.h>
+#include <ctype.h>
 
 #include "estruct.h"
 #include "edef.h"
@@ -31,7 +32,7 @@ static int word_type(void)
 	    (c >= 0xf900 && c <= 0xfadf) ||
 	    (c >= 0x2f800 && c <= 0x2fa1f))
 		return 4;
-	if (isletter(c))
+	if (isalnum(c))
 		return 1;
 	return 0;
 }
