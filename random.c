@@ -1096,15 +1096,9 @@ int getfence(int f, int n)
 		return FALSE;
 	}
 
-	/* set up for scan */
-	count = 1;
-	if (sdir == REVERSE)
-		backchar(FALSE, 1);
-	else
-		forwchar(FALSE, 1);
+	count = 0;
 
-	/* scan until we find it, or reach the end of file */
-	while (count > 0) {
+	for (;;) {
 		if (curwp->w_doto == llength(curwp->w_dotp))
 			c = '\n';
 		else
@@ -1113,20 +1107,16 @@ int getfence(int f, int n)
 			++count;
 		if (c == ofence)
 			--count;
-		if (sdir == FORWARD)
-			forwchar(FALSE, 1);
-		else
-			backchar(FALSE, 1);
-		if (boundry(curwp->w_dotp, curwp->w_doto, sdir))
+		if (boundry(curwp->w_dotp, curwp->w_doto, sdir) || count == 0)
 			break;
+		if (sdir == REVERSE)
+			backchar(FALSE, 1);
+		else
+			forwchar(FALSE, 1);
 	}
 
 	/* if count is zero, we have a match, move the sucker */
 	if (count == 0) {
-		if (sdir == FORWARD)
-			backchar(FALSE, 1);
-		else
-			forwchar(FALSE, 1);
 		curwp->w_flag |= WFMOVE;
 		return TRUE;
 	}
